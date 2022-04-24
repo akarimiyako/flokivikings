@@ -8,7 +8,6 @@ import type {
   HatStyle,
   EyeStyle,
   GlassesStyle,
-  NoseStyle,
   MouthStyle,
   ShirtStyle,
   EyeBrowStyle,
@@ -42,6 +41,7 @@ export const pickRandomFromList: PickRandomFromList = (
   // Pick randon one from the list
   const amount = myData.length;
   const randomIdx = Math.floor(Math.random() * amount);
+
   return myData[randomIdx];
 };
 
@@ -60,7 +60,6 @@ interface DefaultOptions {
   eyeBrowWoman: EyeBrowStyle[];
   eyeStyle: EyeStyle[];
   glassesStyle: GlassesStyle[];
-  noseStyle: NoseStyle[];
   mouthStyle: MouthStyle[];
   shirtStyle: ShirtStyle[];
   shirtColor: string[];
@@ -95,7 +94,6 @@ export const defaultOptions: DefaultOptions = {
   eyeBrowWoman: ["up", "upWoman"],
   eyeStyle: ["circle", "oval", "smile"],
   glassesStyle: ["round", "square", "none"],
-  noseStyle: ["short", "long", "round"],
   mouthStyle: ["laugh", "smile", "peace"],
   shirtStyle: ["hoody", "short", "polo"],
   shirtColor: ["#9287FF", "#6BD9E9", "#FC909F", "#F4D150", "#77311D"],
@@ -122,24 +120,23 @@ export const defaultOptions: DefaultOptions = {
     "linear-gradient(45deg, #56b5f0 0%, #45ccb5 100%)",
   ],
 };
+
+// @ts-ignore
 export const genConfig: GenConfigFunc = (userConfig = {}) => {
   const response = {} as Required<AvatarFullConfig>;
-  response.sex = userConfig.sex || pickRandomFromList(defaultOptions.sex);
-  response.faceColor =
-    userConfig.faceColor || pickRandomFromList(defaultOptions.faceColor);
-  response.earSize =
-    userConfig.earSize || pickRandomFromList(defaultOptions.earSize);
-  response.eyeStyle =
-    userConfig.eyeStyle || pickRandomFromList(defaultOptions.eyeStyle);
-  response.noseStyle =
-    userConfig.noseStyle || pickRandomFromList(defaultOptions.noseStyle);
-  response.mouthStyle =
-    userConfig.mouthStyle || pickRandomFromList(defaultOptions.mouthStyle);
-  response.shirtStyle =
-    userConfig.shirtStyle || pickRandomFromList(defaultOptions.shirtStyle);
-  response.glassesStyle =
-    userConfig.glassesStyle ||
-    pickRandomFromList(defaultOptions.glassesStyle, { usually: ["none"] });
+
+  const elementResponse = (element: string) => {
+    // @ts-ignore
+    return userConfig[element] || pickRandomFromList(defaultOptions[element]);
+  };
+
+  response.sex = elementResponse("sex");
+  response.faceColor = elementResponse("faceColor");
+  response.earSize = elementResponse("earSize");
+  response.eyeStyle = elementResponse("eyeStyle");
+  response.mouthStyle = elementResponse("mouthStyle");
+  response.mouthStyle = elementResponse("shirtStyle");
+  response.mouthStyle = elementResponse("glassesStyle");
 
   // Hair
   let hairColorAvoidList: string[] = [];
@@ -153,6 +150,10 @@ export const genConfig: GenConfigFunc = (userConfig = {}) => {
         break;
       }
       case "man": {
+        hairColorUsually = ["#000"];
+        break;
+      }
+      default: {
         hairColorUsually = ["#000"];
       }
     }
@@ -177,6 +178,11 @@ export const genConfig: GenConfigFunc = (userConfig = {}) => {
         myHairStyle = pickRandomFromList(defaultOptions.hairStyleWoman);
         break;
       }
+
+      default: {
+        myHairStyle = pickRandomFromList(defaultOptions.hairStyleWoman);
+        break;
+      }
     }
   }
   response.hairStyle = myHairStyle;
@@ -187,7 +193,7 @@ export const genConfig: GenConfigFunc = (userConfig = {}) => {
     pickRandomFromList(defaultOptions.hatStyle, { usually: ["none"] });
   response.hatColor =
     userConfig.hatColor || pickRandomFromList(defaultOptions.hatColor);
-  const _hairOrHatColor =
+  const hairOrHatColor =
     (response.hatStyle === "none" && response.hairColor) || response.hatColor;
 
   // Eyebrow
@@ -204,18 +210,17 @@ export const genConfig: GenConfigFunc = (userConfig = {}) => {
   response.shirtColor =
     userConfig.shirtColor ||
     pickRandomFromList(defaultOptions.shirtColor, {
-      avoidList: [_hairOrHatColor],
+      avoidList: [hairOrHatColor],
     });
 
   // Background color
   if (userConfig.isGradient) {
-    response.bgColor =
-      userConfig.bgColor || pickRandomFromList(defaultOptions.gradientBgColor);
+    response.bgColor = elementResponse("bgColor");
   } else {
     response.bgColor =
       userConfig.bgColor ||
       pickRandomFromList(defaultOptions.bgColor, {
-        avoidList: [_hairOrHatColor, response.shirtColor],
+        avoidList: [hairOrHatColor, response.shirtColor],
       });
   }
 

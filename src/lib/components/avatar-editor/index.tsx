@@ -1,6 +1,8 @@
-import { Box } from "@chakra-ui/react";
-import classnames from "classnames";
-import React, { Component } from "react";
+import { Box, useColorModeValue } from "@chakra-ui/react";
+import { css } from "@emotion/react";
+import type { FunctionComponent } from "react";
+import { useState } from "react";
+import { FiDownload } from "react-icons/fi";
 
 import Ear from "lib/components/avatar/ear/index";
 import Eyes from "lib/components/avatar/eyes/index";
@@ -9,64 +11,53 @@ import Glasses from "lib/components/avatar/glasses/index";
 import Hair from "lib/components/avatar/hair/index";
 import Hat from "lib/components/avatar/hat/index";
 import Mouth from "lib/components/avatar/mouth/index";
-import Nose from "lib/components/avatar/nose/index";
 import Shirt from "lib/components/avatar/shirt/index";
 import { defaultOptions } from "lib/components/avatar/utils";
 
-import Box from "./Box/index";
+import ConfigButton from "./config-button";
+import Circle from "./svgs-components/circle";
+import Square from "./svgs-components/square";
+import SquareRounded from "./svgs-components/square-rounded";
 
-import "./index.scss";
+//     config: PropTypes.object.isRequired,
+//     shape: PropTypes.string.isRequired,
+//     updateConfig: PropTypes.func.isRequired,
+//     updateShape: PropTypes.func.isRequired,
+//     download: PropTypes.func.isRequired,
 
-export default class AvatarEditor extends Component {
-  //   static propTypes = {
-  //     config: PropTypes.object.isRequired,
-  //     shape: PropTypes.string.isRequired,
-  //     updateConfig: PropTypes.func.isRequired,
-  //     updateShape: PropTypes.func.isRequired,
-  //     download: PropTypes.func.isRequired,
-  //   };
+type AvatarEditorProps = {
+  config: any;
+  shape: any;
+  updateConfig: () => void;
+  switchShape: () => void;
+  download: () => void;
+};
 
-  constructor(props: any) {
-    super(props);
-    this.state = {
-      isCodeShow: false,
-    };
-    this.myDefaultOptions = this.genDefaultOptions(defaultOptions);
-    this.shapes = ["circle", "rounded", "square"];
-  }
+const AvatarEditor: FunctionComponent<AvatarEditorProps> = (props: any) => {
+  const { config, shape, switchShape, download, updateConfig } = props;
+
+  const bg = useColorModeValue("gray.50", "gray.900");
 
   // Modification on defaultOptions for convenient
-  genDefaultOptions(opts) {
+  const genDefaultOptions = (opts) => {
     const hairSet = new Set(opts.hairStyleMan.concat(opts.hairStyleWoman));
     return {
       ...opts,
       hairStyle: Array.from(hairSet),
     };
-  }
+  };
 
-  switchConfig(type, currentOpt) {
-    const { updateConfig } = this.props;
-    const opts = this.myDefaultOptions[type];
+  const myDefaultOptions = genDefaultOptions(defaultOptions);
+
+  const switchConfig = (type) => {
+    const currentOpt = config[type];
+    const opts = myDefaultOptions[type];
     const currentIdx = opts.findIndex((item) => item === currentOpt);
     const newIdx = (currentIdx + 1) % opts.length;
     updateConfig(type, opts[newIdx]);
-  }
+  };
 
-  switchShape(currentShape) {
-    const { updateShape } = this.props;
-    const currentIdx = this.shapes.findIndex((item) => item === currentShape);
-    const newIdx = (currentIdx + 1) % this.shapes.length;
-    updateShape(this.shapes[newIdx]);
-  }
-
-  toggleCodeShow() {
-    const { isCodeShow } = this.state;
-    this.setState({
-      isCodeShow: !isCodeShow,
-    });
-  }
-
-  genCodeString(config) {
+  const genCodeString = (config) => {
     const ignoreAttr = ["id"];
     const myConfig = Object.keys(config)
       .filter((key) => !ignoreAttr.includes(key))
@@ -76,145 +67,96 @@ export default class AvatarEditor extends Component {
       `const myConfig = genConfig(config)\n` +
       `<NiceAvatar style={{ width: '5rem', height: '5rem' }} {...myConfig} />`
     );
-  }
+  };
 
-  render() {
-    const { config, shape, download } = this.props;
-    const { isCodeShow } = this.state;
-    return (
-      <div className="AvatarEditor rounded-full px-3 py-2 flex items-center">
-        {/* Face */}
-        <Box
-          className="w-8 h-8 rounded-full p-2 mx-2"
-          data-tip="Face"
-          onClick={this.switchConfig.bind(this, "faceColor", config.faceColor)}
-        >
-          <Face color={config.faceColor} />
-        </Box>
-        {/* Hair style */}
-        <Box
-          className="w-8 h-8 rounded-full p-2 mx-2"
-          data-tip="Hair"
-          onClick={this.switchConfig.bind(this, "hairStyle", config.hairStyle)}
-        >
-          <Hair style={config.hairStyle} color="#fff" colorRandom />
-        </Box>
-        {/* Hat style */}
-        <Box
-          className="w-8 h-8 rounded-full p-2 mx-2"
-          data-tip="Hat"
-          onClick={this.switchConfig.bind(this, "hatStyle", config.hatStyle)}
-        >
-          <Hat style={config.hatStyle} color="#fff" />
-        </Box>
-        {/* Eyes style */}
-        <Box
-          className="w-8 h-8 rounded-full p-2 mx-2"
-          data-tip="Eyes"
-          onClick={this.switchConfig.bind(this, "eyeStyle", config.eyeStyle)}
-        >
-          <Eyes style={config.eyeStyle} color="#fff" />
-        </Box>
-        {/* Glasses style */}
-        <Box
-          className="w-8 h-8 rounded-full p-2 mx-2"
-          data-tip="Glasses"
-          onClick={this.switchConfig.bind(
-            this,
-            "glassesStyle",
-            config.glassesStyle
-          )}
-        >
-          <Glasses style={config.glassesStyle} color="#fff" />
-        </Box>
-        {/* Ear style */}
-        <Box
-          className="w-8 h-8 rounded-full p-2 mx-2"
-          data-tip="Ear"
-          onClick={this.switchConfig.bind(this, "earSize", config.earSize)}
-        >
-          <Ear size={config.earSize} color="#fff" />
-        </Box>
-        {/* Nose style */}
-        <Box
-          className="w-8 h-8 rounded-full p-2 mx-2"
-          data-tip="Nose"
-          onClick={this.switchConfig.bind(this, "noseStyle", config.noseStyle)}
-        >
-          <Nose style={config.noseStyle} color="#fff" />
-        </Box>
-        {/* Mouth style */}
-        <Box
-          className="w-8 h-8 rounded-full p-2 mx-2"
-          data-tip="Mouth"
-          onClick={this.switchConfig.bind(
-            this,
-            "mouthStyle",
-            config.mouthStyle
-          )}
-        >
-          <Mouth style={config.mouthStyle} color="#fff" />
-        </Box>
-        {/* Shirt style */}
-        <Box
-          className="w-8 h-8 rounded-full p-2 mx-2"
-          data-tip="Shirt"
-          onClick={this.switchConfig.bind(
-            this,
-            "shirtStyle",
-            config.shirtStyle
-          )}
-        >
-          <Shirt style={config.shirtStyle} color="#fff" />
-        </Box>
+  // return (
+  //   <ConfigButton
+  //
+  //
+  //     aria-label="Face"
+  //     onClick={() => () => switchConfig("faceColor")}
+  //   >
+  //     <Face color={config.faceColor} />
+  //   </ConfigButton>
+  // );
 
-        {/* Shape style */}
-        <Box
-          className="w-8 h-8 rounded-full p-2 mx-2"
-          data-tip="Shape"
-          onClick={this.switchShape.bind(this, shape)}
-        >
-          <div
-            className={classnames("w-3 h-3 bg-white", {
-              "rounded-full": shape === "circle",
-              rounded: shape === "rounded",
-            })}
-          />
-        </Box>
+  const getCurrentShape = () => {
+    if (shape === "square") {
+      return <Square />;
+    }
+    if (shape === "circle") {
+      return <Circle />;
+    }
+    return <SquareRounded />;
+  };
 
-        <div className="divider w-0.5 h-5 rounded mx-2" />
-        <div className="mx-2 relative flex justify-center">
-          <i
-            className={classnames(
-              "iconfont icon-code text-xl  cursor-pointer transition duration-300 hover:text-green-100",
-              {
-                banTip: isCodeShow,
-              }
-            )}
-            data-data-tip="Config"
-            onClick={this.toggleCodeShow.bind(this)}
-          />
-          <div
-            className={classnames(
-              "rounded-lg bg-white p-5 absolute bottom-full codeBlock mb-4",
-              {
-                active: isCodeShow,
-              }
-            )}
-          >
-            <pre className="text-xs highres:text-sm">
-              {this.genCodeString(config)}
-            </pre>
-          </div>
-        </div>
+  return (
+    <Box
+      display="flex"
+      gap="1em"
+      backgroundColor={bg}
+      padding={2}
+      borderRadius="md"
+    >
+      {/* Face */}
+      <ConfigButton
+        aria-label="Face"
+        icon={<Face color={config.faceColor} />}
+      />
+      {/* Hair style */}
+      <ConfigButton
+        aria-label="Hair"
+        onClick={() => switchConfig("hairStyle")}
+        icon={<Hair style={config.hairStyle} color="#fff" />}
+      />
+      {/* Hat style */}
+      <ConfigButton aria-label="Hat" onClick={() => switchConfig("hatStyle")}>
+        <Hat style={config.hatStyle} color="#fff" />
+      </ConfigButton>
+      {/* Eyes style */}
+      <ConfigButton aria-label="Eyes" onClick={() => switchConfig("eyeStyle")}>
+        <Eyes style={config.eyeStyle} color="#fff" />
+      </ConfigButton>
+      {/* Glasses style */}
+      <ConfigButton
+        aria-label="Glasses"
+        onClick={() => switchConfig("glassesStyle")}
+      >
+        <Glasses style={config.glassesStyle} color="#fff" />
+      </ConfigButton>
+      {/* Ear style */}
+      <ConfigButton aria-label="Ear" onClick={() => switchConfig("earSize")}>
+        <Ear size={config.earSize} color="#fff" />
+      </ConfigButton>
 
-        <div className="divider w-0.5 h-5 rounded mx-2" />
-        <i
-          className="iconfont icon-download text-xl mx-2 cursor-pointer transition duration-300 hover:text-green-100"
-          data-data-tip="Download"
-          onClick={download}
-        />
-      </div>
-    );
-  }
-}
+      {/* Mouth style */}
+      <ConfigButton
+        aria-label="Mouth"
+        onClick={() => switchConfig("mouthStyle")}
+        icon={<Mouth style={config.mouthStyle} />}
+      />
+      {/* Shirt style */}
+      <ConfigButton
+        aria-label="Shirt"
+        onClick={() => switchConfig("shirtStyle")}
+      >
+        <Shirt style={config.shirtStyle} color="#fff" />
+      </ConfigButton>
+
+      {/* Shape style */}
+      <ConfigButton
+        aria-label="Shape"
+        onClick={switchShape}
+        icon={getCurrentShape()}
+      />
+
+      <ConfigButton
+        aria-label="Download"
+        onClick={download}
+        icon={<FiDownload />}
+      />
+    </Box>
+  );
+};
+
+export default AvatarEditor;
